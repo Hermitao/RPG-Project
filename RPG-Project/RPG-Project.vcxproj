@@ -145,6 +145,16 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="RPG-Project.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="diffuse.frag" />
+    <None Include="diffuse.vert" />
+    <None Include="shaders\diffuse.frag" />
+    <None Include="shaders\diffuse.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="shader.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
