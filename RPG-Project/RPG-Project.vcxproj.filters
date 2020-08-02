@@ -26,12 +26,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="diffuse.vert">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="diffuse.frag">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="shaders\diffuse.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
@@ -44,6 +38,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

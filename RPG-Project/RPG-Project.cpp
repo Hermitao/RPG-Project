@@ -9,14 +9,14 @@
 
 #include "shader.h"
 #include "camera.h"
+#include "model.h"
+#include "mesh.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 // forward declaration 
 void processInput(GLFWwindow* window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-//void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -77,6 +77,7 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -127,6 +128,10 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
+    glm::vec3 pointLightPositions[] = {
+         glm::vec3(0.7f,  0.2f,  2.0f)
+    };
+
     unsigned int cubeVBO, cubeVAO;
 	glGenBuffers(1, &cubeVBO);
     glGenVertexArrays(1, &cubeVAO);
@@ -145,13 +150,16 @@ int main()
     glEnableVertexAttribArray(2);
 
     Shader shaderDiffuse("shaders/diffuse.vert", "shaders/diffuse.frag");
+    Shader shaderUnlit("shaders/unlit.vert", "shaders/unlit.frag");
 
     glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
+    Model placeholderModel("resources/models/knight/Angel Knight.obj");
+
     stbi_set_flip_vertically_on_load(true);
-    unsigned int diffuseMap      = loadTexture("resources/textures/container2.png");
-    unsigned int specularMap     = loadTexture("resources/textures/container2_specularlogo.png");
+    unsigned int diffuseMap      = loadTexture("resources/textures/RTScrate.png");
+    unsigned int specularMap     = loadTexture("resources/textures/RTScrate_specular.png");
 
     shaderDiffuse.use();
     shaderDiffuse.setInt("material.diffuse", 0);
@@ -200,10 +208,10 @@ int main()
         shaderDiffuse.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
         shaderDiffuse.setFloat("spotLight.on", flashlight);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        // glActiveTexture(GL_TEXTURE1);
+        // glBindTexture(GL_TEXTURE_2D, specularMap);
 
         // view/projection transformations
         projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
@@ -211,13 +219,25 @@ int main()
         shaderDiffuse.setMat4("projection", projection);
         shaderDiffuse.setMat4("view", view);
 
-		// world transformation
-        glm::mat4 model = glm::mat4(1.0f);
+        // render placeholder model
+        glm::mat4 model = glm::mat4(1.0f);      // identity matrix
+        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.2f));
         shaderDiffuse.setMat4("model", model);
+        placeholderModel.Draw(shaderDiffuse);
 
-        // render the cube
         glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        shaderUnlit.use();
+        shaderUnlit.setMat4("projection", projection);
+        shaderUnlit.setMat4("view", view);
+        for (int i{ 0 }; i < sizeof(pointLightPositions); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.7f,  0.2f,  2.0f));
+            model = glm::scale(model, glm::vec3(0.2f));
+            shaderUnlit.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -263,6 +283,14 @@ void processInput(GLFWwindow* window)
             camera.ProcessKeyboard(DOWN, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
             camera.ProcessKeyboard(UP, deltaTime);
+    }
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        flashlight = !flashlight;
     }
 }
 
