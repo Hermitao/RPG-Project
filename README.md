@@ -1,6 +1,6 @@
 # RPG-Project
 
-##Resources:
+## Resources:
 
 http://paulbourke.net/geometry/polygonise/
 
