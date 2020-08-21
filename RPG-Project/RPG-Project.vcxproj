@@ -143,7 +143,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
-    <ClCompile Include="RPG-Project.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="marchingcubes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\diffuse.frag" />
@@ -151,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="marchingcubes.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />

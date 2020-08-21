@@ -11,7 +11,7 @@
 #include "camera.h"
 #include "model.h"
 #include "mesh.h"
-
+#include "marchingcubes.h"
 
 // forward declaration 
 void processInput(GLFWwindow* window);
@@ -25,6 +25,8 @@ unsigned int loadTexture(char const* path);
 // settings
 unsigned int SCR_WIDTH{ 800 };
 unsigned int SCR_HEIGHT{ 600 };
+
+bool vsync{ false };
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -79,7 +81,9 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
 
+    glfwSwapInterval(0);
     glEnable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // ---------------------------------
 
@@ -208,11 +212,6 @@ int main()
         shaderDiffuse.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
         shaderDiffuse.setFloat("spotLight.on", flashlight);
 
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        // glActiveTexture(GL_TEXTURE1);
-        // glBindTexture(GL_TEXTURE_2D, specularMap);
-
         // view/projection transformations
         projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -224,7 +223,15 @@ int main()
         model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.2f));
         shaderDiffuse.setMat4("model", model);
-        placeholderModel.Draw(shaderDiffuse);
+        //placeholderModel.Draw(shaderDiffuse);
+        
+        model = glm::mat4(1.0f);      // identity matrix
+        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.0f));
+        shaderDiffuse.setMat4("model", model);
+
+        vSetTime(currentFrame * 0.1f);
+        vMarchingCubes();
 
         glBindVertexArray(cubeVAO);
         shaderUnlit.use();
@@ -238,6 +245,7 @@ int main()
             shaderUnlit.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -291,6 +299,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         flashlight = !flashlight;
+    }
+
+    // placeholder -----
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 }
 
