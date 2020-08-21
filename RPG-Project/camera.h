@@ -43,6 +43,16 @@ public:
     float MouseSensitivity;
     float Fov;
 
+    GLboolean SmoothMovement{ false };
+    float smoothVelocityForward{ 0.0f };
+    float smoothVelocityRight{ 0.0f };
+    float smoothVelocityUp{ 0.0f };
+    float smoothYaw{ 0.0f };
+    float smoothPitch{ 0.0f };
+
+    float smoothXOffset{ 0.0f };
+    float smoothYOffset{ 0.0f };
+
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Fov(FOV)
     {
@@ -68,32 +78,103 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
+    void ResetMovement()
+    {
+        smoothVelocityForward = 0.0f;
+        smoothVelocityRight = 0.0f;
+        smoothVelocityUp = 0.0f;
+        smoothXOffset = 0.0f;
+        smoothYOffset = 0.0f;
+    }
+
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = MovementSpeed * deltaTime * VelocityMultiplier;
+        float smooth{ 0.3f };
+
+        float velocity{ MovementSpeed * deltaTime * VelocityMultiplier };
         if (direction == FORWARD)
-            Position += Front * velocity;
+        {
+            smoothVelocityForward += smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position += Front * velocity;
+            }
+        }
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+        {
+            smoothVelocityForward -= smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position -= Front * velocity;
+            }
+        }
         if (direction == LEFT)
-            Position -= Right * velocity;
+        {
+            smoothVelocityRight -= smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position -= Right * velocity;
+            }
+        }
         if (direction == RIGHT)
-            Position += Right * velocity;
+        {
+            smoothVelocityRight += smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position += Right * velocity;
+            }
+        }
         if (direction == UP)
-            Position += Up * velocity;
+        {
+            smoothVelocityUp += smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position += Up * velocity;
+            }
+        }
         if (direction == DOWN)
-            Position -= Up * velocity;
+        {
+            smoothVelocityUp -= smooth * deltaTime * VelocityMultiplier;
+            if (!SmoothMovement)
+            {
+                Position -= Up * velocity;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Proccesses smooth translation movement, should be called in the game loop.
+    /// </summary>
+    /// <param name="deltaTime"></param>
+    void ProccessSmoothMovement(float deltaTime)
+    {
+        if (SmoothMovement)
+        {
+            Position += Front * smoothVelocityForward * deltaTime;
+            Position += Right * smoothVelocityRight * deltaTime;
+            Position += Up * smoothVelocityUp * deltaTime;
+        }
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
+        float smooth{ 0.1f };
+
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
 
-        Yaw += xoffset;
-        Pitch += yoffset;
+        if (!SmoothMovement)
+        {
+            Yaw += xoffset;
+            Pitch += yoffset;
+        }
+        else
+        {
+            smoothXOffset += xoffset * smooth;
+            smoothYOffset += yoffset * smooth;
+        }
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)
@@ -106,6 +187,30 @@ public:
 
         // update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
+    }
+
+	/// <summary>
+    /// Proccesses smooth rotation movement, should be called in the game loop.
+    /// </summary>
+    /// <param name="deltaTime"></param>
+    void ProccessSmoothMouseMovement(float deltaTime, GLboolean constrainPitch = true)
+    {
+        if (SmoothMovement)
+        {
+            Yaw += smoothXOffset * deltaTime;
+            Pitch += smoothYOffset * deltaTime;
+
+			if (constrainPitch)
+			{
+			    if (Pitch > 89.0f)
+			        Pitch = 89.0f;
+			    if (Pitch < -89.0f)
+			   	    Pitch = -89.0f;
+			}
+
+			// update Front, Right and Up Vectors using the updated Euler angles
+			updateCameraVectors();   Pitch += smoothPitch * deltaTime;
+		}
     }
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis

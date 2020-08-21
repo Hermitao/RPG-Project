@@ -92,7 +92,7 @@ static const GLfloat afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
 
 
 GLenum    ePolygonMode = GL_FILL;
-GLint     iDataSetSize = 16;
+GLint     iDataSetSize = 24;
 GLfloat   fStepSize = 1.0/iDataSetSize;
 GLfloat   fTargetValue = 48.0;
 GLfloat   fTime = 0.0;
@@ -101,7 +101,7 @@ GLboolean bSpin = true;
 GLboolean bMove = true;
 GLboolean bLight = true;
 
-GLfloat (*fSample)(GLfloat fX, GLfloat fY, GLfloat fZ) = fSample1;
+GLfloat (*fSample)(GLfloat fX, GLfloat fY, GLfloat fZ) = fSample2;
 GLvoid (*vMarchCube)(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale) = vMarchCube1;
 
 //fGetOffset finds the approximate point of intersection of the surface

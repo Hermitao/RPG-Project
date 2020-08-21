@@ -28,6 +28,8 @@ unsigned int SCR_HEIGHT{ 600 };
 
 bool vsync{ false };
 
+GLboolean smoothMovement{ false };
+
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX{ SCR_WIDTH / 2.0f };
@@ -180,6 +182,9 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        camera.ProccessSmoothMovement(deltaTime);
+        camera.ProccessSmoothMouseMovement(deltaTime);
+
         // shader activation
         shaderDiffuse.use();
 		shaderDiffuse.setVec3("viewPos", camera.Position);
@@ -299,6 +304,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         flashlight = !flashlight;
+    }
+
+    if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
+    {
+        smoothMovement = !smoothMovement;
+        camera.SmoothMovement = smoothMovement;
+        camera.ResetMovement();
+    }
+
+    if (key == GLFW_KEY_F7 && action == GLFW_PRESS)
+    {
+		if(fSample == fSample1)
+		{
+				fSample = fSample2;
+		}
+		else if(fSample == fSample2)
+		{
+				fSample = fSample3;
+		}
+		else
+		{
+				fSample = fSample1;
+		}
     }
 
     // placeholder -----
