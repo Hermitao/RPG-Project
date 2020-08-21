@@ -230,7 +230,7 @@ int main()
         model = glm::scale(model, glm::vec3(1.0f));
         shaderDiffuse.setMat4("model", model);
 
-        vSetTime(currentFrame * 0.1f);
+        vSetTime(currentFrame * 0.25f);
         vMarchingCubes();
 
         glBindVertexArray(cubeVAO);

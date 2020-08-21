@@ -297,17 +297,22 @@ GLvoid vMarchCube1(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
                 }
         }
 
+        // float vertices[9] = {
 
+        // };
+
+
+		float vertices[45]{};
+        int numOfTris{0};
         //Draw the triangles that were found.  There can be up to five per cube
         for(iTriangle = 0; iTriangle < 5; iTriangle++)
         {
                 if(a2iTriangleConnectionTable[iFlagIndex][3*iTriangle] < 0)
                         break;
 
+                ++numOfTris;
+ 
                 // 3 vertices * 3 coordinates for each
-                float vertices[9] = {
-
-                };
                 for(iCorner = 0; iCorner < 3; iCorner++)
                 {
                         iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+iCorner];
@@ -316,44 +321,30 @@ GLvoid vMarchCube1(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
                         // glColor3f(sColor.fX, sColor.fY, sColor.fZ);
                         // glNormal3f(asEdgeNorm[iVertex].fX,   asEdgeNorm[iVertex].fY,   asEdgeNorm[iVertex].fZ);
                         // glVertex3f(asEdgeVertex[iVertex].fX, asEdgeVertex[iVertex].fY, asEdgeVertex[iVertex].fZ);
-                        if (iCorner == 0)
-                        {
-                            vertices[iCorner] = asEdgeVertex[iVertex].fX;
-                            vertices[iCorner + 1] = asEdgeVertex[iVertex].fY;
-                            vertices[iCorner + 2] = asEdgeVertex[iVertex].fZ;
-                        }
-                        if (iCorner == 1)
-                        {
-                            vertices[iCorner + 2] = asEdgeVertex[iVertex].fX;
-                            vertices[iCorner + 3] = asEdgeVertex[iVertex].fY;
-                            vertices[iCorner + 4] = asEdgeVertex[iVertex].fZ;
-                        }
-                        if (iCorner == 2)
-                        {
-                            vertices[iCorner + 4] = asEdgeVertex[iVertex].fX;
-                            vertices[iCorner + 5] = asEdgeVertex[iVertex].fY;
-                            vertices[iCorner + 6] = asEdgeVertex[iVertex].fZ;
-                        }
+                        int offset{3 * (iCorner + iTriangle * 3) };
+						vertices[offset] = asEdgeVertex[iVertex].fX;
+						vertices[offset + 1] = asEdgeVertex[iVertex].fY;
+						vertices[offset + 2] = asEdgeVertex[iVertex].fZ;
                 }
-
-                unsigned int VBO, VAO;
-				glGenBuffers(1, &VBO);
-				glGenVertexArrays(1, &VAO);
-
-				glBindBuffer(GL_ARRAY_BUFFER, VBO);
-				glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-				glBindVertexArray(VAO);
-
-				unsigned int stride{ 3 };
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
-				glEnableVertexAttribArray(0);
-
-                glDrawArrays(GL_TRIANGLES, 0, 3);   // NOTE: should improve on this to use a single draw call for all triangles (maybe after the for loop for the iTriangle's).
-
-                glDeleteVertexArrays(1, &VAO);
-                glDeleteBuffers(1, &VBO);
         }
+        
+        unsigned int VBO, VAO;
+		glGenBuffers(1, &VBO);
+		glGenVertexArrays(1, &VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(VAO);
+
+		unsigned int stride{ 3 };
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glDrawArrays(GL_TRIANGLES, 0, numOfTris * 3);
+
+		glDeleteVertexArrays(1, &VAO);
+		glDeleteBuffers(1, &VBO);
 }
 
 //vMarchTetrahedron performs the Marching Tetrahedrons algorithm on a single tetrahedron
@@ -466,6 +457,7 @@ GLvoid vMarchCube2(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
 GLvoid vMarchingCubes()
 {
         GLint iX, iY, iZ;
+        // NOTE: multiply iDataSetSize's to chance simulation(chunk) size
         for(iX = 0; iX < iDataSetSize; iX++)
         for(iY = 0; iY < iDataSetSize; iY++)
         for(iZ = 0; iZ < iDataSetSize; iZ++)
