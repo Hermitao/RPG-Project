@@ -94,8 +94,8 @@ static const GLfloat afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
 
 
 GLenum    ePolygonMode = GL_FILL;
-GLint     iDataSetSize = 32*2;    // resolution
-GLfloat   fStepSize = 2.0*2/iDataSetSize; 
+GLint     iDataSetSize = 32;    // resolution
+GLfloat   fStepSize = 1.0/iDataSetSize; 
 GLfloat   fTargetValue = 0.0;
 GLfloat   fTime = 0.0;
 GLvector  sSourcePoint[3];
@@ -106,7 +106,7 @@ GLboolean bLight = true;
 GLfloat (*fSample)(GLfloat fX, GLfloat fY, GLfloat fZ) = fSample4;
 GLvoid (*vMarchCube)(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale) = vMarchCube1;
 
-GLfloat vertices[4915200]{};
+GLfloat vertices[491520]{};
 GLint numOfTris{0};
 
 
@@ -238,7 +238,9 @@ GLfloat fSample3(GLfloat fX, GLfloat fY, GLfloat fZ)
 
 GLfloat fSample4(GLfloat fX, GLfloat fY, GLfloat fZ)
 {
-    GLfloat fResult = SimplexNoise::noise(fX, fY, fZ);
+    size_t octaves = 5;
+    SimplexNoise simplex(0.8f/1.0f, 1.0f, 2.0f, 0.5f);
+    GLfloat fResult = simplex.fractal(octaves, fX, fY, fZ);
     return fResult;
 }
 
@@ -469,9 +471,9 @@ GLvoid vMarchingCubes(GLuint *VBO, GLuint *VAO, GLuint *numOfTrianglesVariable)
         numOfTris = 0;
         GLint iX, iY, iZ;
         // NOTE: multiply iDataSetSize's to chance simulation(chunk) size
-        for(iX = 0; iX < iDataSetSize; iX++)
-        for(iY = 0; iY < iDataSetSize; iY++)
-        for(iZ = 0; iZ < iDataSetSize; iZ++)
+        for(iX = 0; iX < iDataSetSize * 2; iX++)
+        for(iY = 0; iY < iDataSetSize * 2; iY++)
+        for(iZ = 0; iZ < iDataSetSize * 2; iZ++)
         {
                 vMarchCube(iX*fStepSize, iY*fStepSize, iZ*fStepSize, fStepSize);
         }

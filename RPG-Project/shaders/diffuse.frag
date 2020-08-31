@@ -59,8 +59,8 @@ uniform SpotLight spotLight;
 
 uniform float time;
 
-float near = 0.1;
-float far = 50.0;
+float near = 1.0;
+float far = 30.0;
 
 // ---- forward declaration ----
 
@@ -102,7 +102,10 @@ void main()
     //FragColor = vec4(result, texture(material.diffuse, TexCoords).w);
     vec4 texColor = texture(material.diffuse, TexCoords);
     FragColor = vec4(result, texColor.w);
-    FragColor = vec4(FragPos, 1.0);
+    //FragColor = vec4(FragPos, 1.0);
+    float depth = LinearizeDepth(gl_FragCoord.z) / far;
+    FragColor = vec4(vec3(1.0 - depth) * FragPos, 1.0);
+    // FragColor = vec4(vec3(1.0 - depth), 1.0);
 
 //    float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
 //    FragColor = vec4(vec3(depth), 1.0);

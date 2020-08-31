@@ -253,7 +253,7 @@ int main()
         for (int i{ 0 }; i < sizeof(pointLightPositions); i++)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.7f,  0.2f,  2.0f));
+            model = glm::translate(model, glm::vec3(2.7f,  0.2f,  2.0f));
             model = glm::scale(model, glm::vec3(0.2f));
             shaderUnlit.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -281,7 +281,7 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true); 
     }
 
-    const float cameraSpeed = 5.0f * deltaTime; // adjust accordingly
+    const float cameraSpeed = 2.0f * deltaTime; // adjust accordingly
     float cameraSpeedMultiplier = 1.0f;
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
