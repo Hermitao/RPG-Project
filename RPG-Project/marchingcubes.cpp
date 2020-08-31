@@ -26,6 +26,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "SimplexNoise.h"
+
 struct GLvector
 {
         GLfloat fX;
@@ -92,23 +94,27 @@ static const GLfloat afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
 
 
 GLenum    ePolygonMode = GL_FILL;
-GLint     iDataSetSize = 24;
-GLfloat   fStepSize = 1.0/iDataSetSize;
-GLfloat   fTargetValue = 48.0;
+GLint     iDataSetSize = 32*2;    // resolution
+GLfloat   fStepSize = 2.0*2/iDataSetSize; 
+GLfloat   fTargetValue = 0.0;
 GLfloat   fTime = 0.0;
 GLvector  sSourcePoint[3];
 GLboolean bSpin = true;
 GLboolean bMove = true;
 GLboolean bLight = true;
 
-GLfloat (*fSample)(GLfloat fX, GLfloat fY, GLfloat fZ) = fSample2;
+GLfloat (*fSample)(GLfloat fX, GLfloat fY, GLfloat fZ) = fSample4;
 GLvoid (*vMarchCube)(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale) = vMarchCube1;
+
+GLfloat vertices[4915200]{};
+GLint numOfTris{0};
+
 
 //fGetOffset finds the approximate point of intersection of the surface
 // between two points with the values fValue1 and fValue2
 GLfloat fGetOffset(GLfloat fValue1, GLfloat fValue2, GLfloat fValueDesired)
 {
-        GLdouble fDelta = fValue2 - fValue1;
+        GLfloat fDelta = fValue2 - fValue1;
 
         if(fDelta == 0.0)
         {
@@ -134,6 +140,7 @@ GLvoid vNormalizeVector(GLvector &rfVectorResult, GLvector &rfVectorSource)
         GLfloat fOldLength;
         GLfloat fScale;
 
+        // "The length of a vector is the square root of the sum of the squares of the horizontal and vertical components."
         fOldLength = sqrtf( (rfVectorSource.fX * rfVectorSource.fX) +
                             (rfVectorSource.fY * rfVectorSource.fY) +
                             (rfVectorSource.fZ * rfVectorSource.fZ) );
@@ -178,22 +185,22 @@ GLvoid vSetTime(GLfloat fNewTime)
 //fSample1 finds the distance of (fX, fY, fZ) from three moving points
 GLfloat fSample1(GLfloat fX, GLfloat fY, GLfloat fZ)
 {
-        GLdouble fResult = 0.0;
-        GLdouble fDx, fDy, fDz;
+        GLfloat fResult = 0.0f;
+        GLfloat fDx, fDy, fDz;
         fDx = fX - sSourcePoint[0].fX;
         fDy = fY - sSourcePoint[0].fY;
         fDz = fZ - sSourcePoint[0].fZ;
-        fResult += 0.5/(fDx*fDx + fDy*fDy + fDz*fDz);
+        fResult += 0.5f/(fDx*fDx + fDy*fDy + fDz*fDz);
 
         fDx = fX - sSourcePoint[1].fX;
         fDy = fY - sSourcePoint[1].fY;
         fDz = fZ - sSourcePoint[1].fZ;
-        fResult += 1.0/(fDx*fDx + fDy*fDy + fDz*fDz);
+        fResult += 1.0f/(fDx*fDx + fDy*fDy + fDz*fDz);
 
         fDx = fX - sSourcePoint[2].fX;
         fDy = fY - sSourcePoint[2].fY;
         fDz = fZ - sSourcePoint[2].fZ;
-        fResult += 1.5/(fDx*fDx + fDy*fDy + fDz*fDz);
+        fResult += 1.5f/(fDx*fDx + fDy*fDy + fDz*fDz);
 
         return fResult;
 }
@@ -227,6 +234,12 @@ GLfloat fSample3(GLfloat fX, GLfloat fY, GLfloat fZ)
         GLdouble fResult = (fHeight - fZ)*50.0;
 
         return fResult;
+}
+
+GLfloat fSample4(GLfloat fX, GLfloat fY, GLfloat fZ)
+{
+    GLfloat fResult = SimplexNoise::noise(fX, fY, fZ);
+    return fResult;
 }
 
 
@@ -301,9 +314,6 @@ GLvoid vMarchCube1(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
 
         // };
 
-
-		float vertices[45]{};
-        int numOfTris{0};
         //Draw the triangles that were found.  There can be up to five per cube
         for(iTriangle = 0; iTriangle < 5; iTriangle++)
         {
@@ -321,30 +331,30 @@ GLvoid vMarchCube1(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
                         // glColor3f(sColor.fX, sColor.fY, sColor.fZ);
                         // glNormal3f(asEdgeNorm[iVertex].fX,   asEdgeNorm[iVertex].fY,   asEdgeNorm[iVertex].fZ);
                         // glVertex3f(asEdgeVertex[iVertex].fX, asEdgeVertex[iVertex].fY, asEdgeVertex[iVertex].fZ);
-                        int offset{3 * (iCorner + iTriangle * 3) };
+                        int offset{3 * (iCorner + numOfTris * 3) };
 						vertices[offset] = asEdgeVertex[iVertex].fX;
 						vertices[offset + 1] = asEdgeVertex[iVertex].fY;
 						vertices[offset + 2] = asEdgeVertex[iVertex].fZ;
                 }
         }
         
-        unsigned int VBO, VAO;
-		glGenBuffers(1, &VBO);
-		glGenVertexArrays(1, &VAO);
+        // unsigned int VBO, VAO;
+	    // glGenBuffers(1, &VBO);
+	    // glGenVertexArrays(1, &VAO);
 
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		glBindVertexArray(VAO);
+	    // glBindVertexArray(VAO);
 
-		unsigned int stride{ 3 };
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
+	    // unsigned int stride{ 3 };
+	    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+	    // glEnableVertexAttribArray(0);
 
-		glDrawArrays(GL_TRIANGLES, 0, numOfTris * 3);
+	    // glDrawArrays(GL_TRIANGLES, 0, numOfTris * 3);
 
-		glDeleteVertexArrays(1, &VAO);
-		glDeleteBuffers(1, &VBO);
+	    // glDeleteVertexArrays(1, &VAO);
+	    // glDeleteBuffers(1, &VBO);
 }
 
 //vMarchTetrahedron performs the Marching Tetrahedrons algorithm on a single tetrahedron
@@ -454,8 +464,9 @@ GLvoid vMarchCube2(GLfloat fX, GLfloat fY, GLfloat fZ, GLfloat fScale)
         
 
 //vMarchingCubes iterates over the entire dataset, calling vMarchCube on each cube
-GLvoid vMarchingCubes()
+GLvoid vMarchingCubes(GLuint *VBO, GLuint *VAO, GLuint *numOfTrianglesVariable)
 {
+        numOfTris = 0;
         GLint iX, iY, iZ;
         // NOTE: multiply iDataSetSize's to chance simulation(chunk) size
         for(iX = 0; iX < iDataSetSize; iX++)
@@ -464,6 +475,25 @@ GLvoid vMarchingCubes()
         {
                 vMarchCube(iX*fStepSize, iY*fStepSize, iZ*fStepSize, fStepSize);
         }
+
+		glGenBuffers(1, VBO);
+		glGenVertexArrays(1, VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(*VAO);
+
+		GLuint stride{ 3 };
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+        *numOfTrianglesVariable = numOfTris;
+
+	    // glDrawArrays(GL_TRIANGLES, 0, numOfTris * 3);
+
+	    // glDeleteVertexArrays(1, &VAO);
+	    // glDeleteBuffers(1, &VBO);
 }
 
 

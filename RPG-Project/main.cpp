@@ -155,6 +155,8 @@ int main()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    GLuint terrainVBO, terrainVAO;
+
     Shader shaderDiffuse("shaders/diffuse.vert", "shaders/diffuse.frag");
     Shader shaderUnlit("shaders/unlit.vert", "shaders/unlit.frag");
 
@@ -170,6 +172,10 @@ int main()
     shaderDiffuse.use();
     shaderDiffuse.setInt("material.diffuse", 0);
     shaderDiffuse.setInt("material.specular", 1);
+
+    vSetTime(0.0f);
+    GLuint terrainNumOfTris{ 0 };
+    vMarchingCubes(&terrainVBO, &terrainVAO, &terrainNumOfTris);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -228,15 +234,17 @@ int main()
         model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.2f));
         shaderDiffuse.setMat4("model", model);
-        //placeholderModel.Draw(shaderDiffuse);
+        // placeholderModel.Draw(shaderDiffuse);
         
         model = glm::mat4(1.0f);      // identity matrix
         model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f));
         shaderDiffuse.setMat4("model", model);
 
-        vSetTime(currentFrame * 0.25f);
-        vMarchingCubes();
+        // vSetTime(currentFrame * 0.25f);
+        // vMarchingCubes();
+        glBindVertexArray(terrainVAO);
+        glDrawArrays(GL_TRIANGLES, 0, terrainNumOfTris * 3);
 
         glBindVertexArray(cubeVAO);
         shaderUnlit.use();
@@ -258,6 +266,9 @@ int main()
 
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
+
+    glDeleteVertexArrays(1, &terrainVAO);
+    glDeleteBuffers(1, &terrainVBO);
 
     glfwTerminate();
     return 0;
@@ -317,16 +328,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
 		if(fSample == fSample1)
 		{
-				fSample = fSample2;
+			fSample = fSample2;
 		}
 		else if(fSample == fSample2)
 		{
-				fSample = fSample3;
+			fSample = fSample3;
 		}
-		else
+        else if (fSample == fSample3)
 		{
-				fSample = fSample1;
+			fSample = fSample4;
 		}
+        else
+        {
+            fSample = fSample1;
+        }
     }
 
     // placeholder -----
